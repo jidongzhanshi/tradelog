@@ -1,0 +1,14 @@
+node_modules
+dist
+.pnpm-store
+.env
+*.log
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/backups/*.db
+backend/local_data
+backend/__pycache__
+backend/.venv
+frontend/node_modules
+frontend/dist
