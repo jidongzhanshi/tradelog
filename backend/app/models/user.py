@@ -10,7 +10,6 @@ from app.core.database import Base
 class UserRole(str, Enum):
     SUPER_ADMIN = "super_admin"
     TRADER = "trader"
-    VIEWER = "viewer"
 
 
 class User(Base):

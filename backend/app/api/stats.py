@@ -50,7 +50,7 @@ def charts(
     elif current_user.role == UserRole.TRADER:
         initial_capital = stats_service.user_initial_capital(db, current_user.id)
     else:
-        trader_users = db.query(User).filter(User.role == UserRole.TRADER, User.is_active == True).all()
+        trader_users = db.query(User).filter(User.role == UserRole.TRADER).all()
         initial_capital = sum(stats_service.user_initial_capital(db, user.id) for user in trader_users)
     return {
         "equity_curve": stats_service.build_equity_curve(trades, initial_capital),
@@ -67,7 +67,7 @@ def comparison(
     _: User = Depends(require_read_all),
     db: Session = Depends(get_db),
 ):
-    users = db.query(User).filter(User.role == UserRole.TRADER, User.is_active == True).all()
+    users = db.query(User).filter(User.role == UserRole.TRADER).all()
     user_stats = []
     all_trades = []
     combined_capital = 0

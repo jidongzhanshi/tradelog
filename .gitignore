@@ -8,7 +8,8 @@ data/*.db-shm
 data/*.db-wal
 data/backups/*.db
 backend/local_data
-backend/__pycache__
+__pycache__/
+*.py[cod]
 backend/.venv
 frontend/node_modules
 frontend/dist

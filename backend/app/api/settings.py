@@ -27,8 +27,6 @@ def update_settings(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role == UserRole.VIEWER:
-        raise HTTPException(status_code=403, detail="观察账号不能修改设置")
     target_id = user_id if current_user.role == UserRole.SUPER_ADMIN and user_id else current_user.id
     setting = ensure_setting(db, target_id)
     setting.initial_capital = payload.initial_capital

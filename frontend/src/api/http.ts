@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ElMessage } from 'element-plus';
+import { t } from '../i18n';
 
 export const http = axios.create({
   baseURL: '/api',
@@ -7,7 +8,7 @@ export const http = axios.create({
 });
 
 function readErrorMessage(payload: any): string {
-  if (!payload) return '请求失败：后端没有返回错误详情';
+  if (!payload) return t('error.noDetail');
   if (typeof payload.detail === 'string') return payload.detail;
   if (Array.isArray(payload.detail)) {
     return payload.detail
@@ -32,7 +33,7 @@ http.interceptors.response.use(
   (error) => {
     const message = error.response
       ? readErrorMessage(error.response.data)
-      : `网络请求失败：${error.message}`;
+      : t('error.network', { message: error.message });
     if (error.response?.status !== 401) {
       ElMessage({
         message,

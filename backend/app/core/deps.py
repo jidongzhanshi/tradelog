@@ -36,7 +36,7 @@ def require_super_admin(current_user: User = Depends(get_current_user)) -> User:
 
 
 def require_read_all(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.role not in {UserRole.SUPER_ADMIN, UserRole.VIEWER}:
+    if current_user.role != UserRole.SUPER_ADMIN:
         raise HTTPException(status_code=403, detail="无权查看多用户数据")
     return current_user
 

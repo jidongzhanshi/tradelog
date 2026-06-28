@@ -1,14 +1,28 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue';
-import * as echarts from 'echarts';
+import { use, init, type ECharts } from 'echarts/core';
+import { BarChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
+
+use([
+  BarChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  GridComponent,
+  LegendComponent,
+  TooltipComponent,
+  CanvasRenderer,
+]);
 
 const props = defineProps<{ option: any }>();
 const el = ref<HTMLDivElement>();
-let chart: echarts.ECharts | null = null;
+let chart: ECharts | null = null;
 
 function render() {
   if (!el.value) return;
-  if (!chart) chart = echarts.init(el.value);
+  if (!chart) chart = init(el.value);
   chart.setOption(props.option, true);
 }
 

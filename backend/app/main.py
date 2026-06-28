@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import routers
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
+from app.core.migrations import run_migrations
 from app.core.security import hash_password
 from app.models import User, UserRole, UserSetting
 
@@ -33,6 +34,7 @@ async def unhandled_exception_handler(_request: Request, exc: Exception):
 @app.on_event("startup")
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
+    run_migrations()
     seed_default_admin()
 
 

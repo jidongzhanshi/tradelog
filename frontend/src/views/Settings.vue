@@ -5,6 +5,7 @@ import { changePassword } from '../api/auth';
 import { getSettings, updateSettings } from '../api/settings';
 import UserScopeBar from '../components/UserScopeBar.vue';
 import TimeZoneStrip from '../components/TimeZoneStrip.vue';
+import { t } from '../i18n';
 import { useAuthStore } from '../stores/auth';
 
 const auth = useAuthStore();
@@ -20,53 +21,57 @@ async function load() {
 
 async function saveCapital() {
   await updateSettings(capital.value, { user_id: scopeUserId.value });
-  ElMessage.success('资金设置已保存');
+  ElMessage.success(t('settings.capitalSaved'));
 }
 
 async function savePassword() {
   await changePassword(oldPassword.value, newPassword.value);
   oldPassword.value = '';
   newPassword.value = '';
-  ElMessage.success('密码已修改');
+  ElMessage.success(t('settings.passwordSaved'));
 }
 
-onMounted(load);
-watch(scopeUserId, load);
+onMounted(() => {
+  if (!auth.isAdmin) load();
+});
+watch(scopeUserId, (value) => {
+  if (value) load();
+});
 </script>
 
 <template>
   <div class="page-stack">
     <header class="page-header">
       <div>
-        <span class="eyebrow">Settings</span>
-        <h1>系统设置</h1>
+        <span class="eyebrow">{{ t('settings.eyebrow') }}</span>
+        <h1>{{ t('settings.title') }}</h1>
       </div>
     </header>
 
     <TimeZoneStrip />
-    <UserScopeBar v-if="auth.isAdmin" v-model="scopeUserId" />
+    <UserScopeBar v-if="auth.isAdmin" v-model="scopeUserId" :include-all="false" />
 
     <section class="settings-grid">
-      <el-card class="panel-card" header="资金设置">
+      <el-card class="panel-card" :header="t('settings.capital')">
         <el-form label-position="top">
-          <el-form-item label="总投入本金（USDT）">
+          <el-form-item :label="t('settings.capitalLabel')">
             <el-input-number v-model="capital" :min="0" :precision="2" />
           </el-form-item>
-          <el-button type="primary" :disabled="auth.isViewer" @click="saveCapital">保存</el-button>
+          <el-button type="primary" @click="saveCapital">{{ t('common.save') }}</el-button>
         </el-form>
       </el-card>
 
-      <el-card class="panel-card" header="账号安全">
+      <el-card class="panel-card" :header="t('settings.security')">
         <el-form label-position="top">
-          <el-form-item label="旧密码"><el-input v-model="oldPassword" type="password" show-password /></el-form-item>
-          <el-form-item label="新密码"><el-input v-model="newPassword" type="password" show-password /></el-form-item>
-          <el-button type="primary" @click="savePassword">修改密码</el-button>
+          <el-form-item :label="t('common.oldPassword')"><el-input v-model="oldPassword" type="password" show-password /></el-form-item>
+          <el-form-item :label="t('common.newPassword')"><el-input v-model="newPassword" type="password" show-password /></el-form-item>
+          <el-button type="primary" @click="savePassword">{{ t('settings.changePassword') }}</el-button>
         </el-form>
       </el-card>
 
-      <el-card class="panel-card" header="备份说明">
-        <p class="muted">SQLite 数据库会保存在服务器 data 目录。Docker 重建不会影响 data 目录。</p>
-        <p class="muted">超级管理员可通过后端接口触发手动备份，自动备份策略后续可接入系统定时任务。</p>
+      <el-card class="panel-card" :header="t('settings.backup')">
+        <p class="muted">{{ t('settings.backupLine1') }}</p>
+        <p class="muted">{{ t('settings.backupLine2') }}</p>
       </el-card>
     </section>
   </div>

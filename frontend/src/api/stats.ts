@@ -1,5 +1,5 @@
 import { http } from './http';
-import type { OverviewStats } from '../types';
+import type { AccountOverview, OverviewStats } from '../types';
 
 export async function getOverview(params: Record<string, unknown>) {
   const { data } = await http.get('/stats/overview', { params });
@@ -13,5 +13,5 @@ export async function getCharts(params: Record<string, unknown>) {
 
 export async function getComparison(params: Record<string, unknown>) {
   const { data } = await http.get('/stats/comparison', { params });
-  return data as { users: OverviewStats[]; combined: OverviewStats };
+  return data as { users: AccountOverview[]; combined: OverviewStats };
 }

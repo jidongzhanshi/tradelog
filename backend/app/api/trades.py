@@ -44,9 +44,13 @@ def create_trade(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role == UserRole.VIEWER:
-        raise HTTPException(status_code=403, detail="观察账号不能新增交易")
-    owner_id = payload.user_id if current_user.role == UserRole.SUPER_ADMIN and payload.user_id else current_user.id
+    if current_user.role == UserRole.SUPER_ADMIN and not payload.user_id:
+        raise HTTPException(status_code=400, detail="管理员新增交易时必须选择归属交易账号")
+    owner_id = payload.user_id if current_user.role == UserRole.SUPER_ADMIN else current_user.id
+    if current_user.role == UserRole.SUPER_ADMIN:
+        owner = db.get(User, owner_id)
+        if not owner or owner.role != UserRole.TRADER:
+            raise HTTPException(status_code=400, detail="交易只能归属到交易账号")
     if not can_manage_trade_owner(current_user, owner_id):
         raise HTTPException(status_code=403, detail="无权为该用户新增交易")
     trade = Trade(**prepare_trade_payload(payload), user_id=owner_id)
@@ -73,8 +77,6 @@ def update_trade(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if current_user.role == UserRole.VIEWER:
-        raise HTTPException(status_code=403, detail="观察账号不能编辑交易")
     trade = db.get(Trade, trade_id)
     if not trade:
         raise HTTPException(status_code=404, detail="交易不存在")
@@ -90,8 +92,6 @@ def update_trade(
 
 @router.delete("/{trade_id}")
 def delete_trade(trade_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    if current_user.role == UserRole.VIEWER:
-        raise HTTPException(status_code=403, detail="观察账号不能删除交易")
     trade = db.get(Trade, trade_id)
     if not trade:
         raise HTTPException(status_code=404, detail="交易不存在")

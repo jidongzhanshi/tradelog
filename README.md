@@ -1,10 +1,10 @@
 # TradeLog 交易记录复盘系统
 
-私用交易复盘系统，支持超级管理员、交易账号、只读观察账号。系统只记录已平仓交易，按 USDT 统计盈亏，支持图表分析、用户对比和 Excel 导出。
+私用交易复盘系统，支持超级管理员和数据隔离的交易账号。系统只记录已平仓交易，按 USDT 统计盈亏，支持图表分析、管理员多账号对比和 Excel 导出。
 
 ## 技术栈
 
-- 前端：Vue 3 + Vite + TypeScript + Element Plus + ECharts
+- 前端：Vue 3 + Vite + TypeScript + Element Plus + ECharts + GSAP
 - 后端：Python + FastAPI + SQLAlchemy
 - 数据库：SQLite
 - 部署：Docker Compose
@@ -76,9 +76,10 @@ C:\Users\<你的用户名>\AppData\Local\TradeLog\data\tradelog.db
 ## 主要功能
 
 - 用户登录与 JWT 鉴权
-- 超级管理员用户管理
+- 超级管理员账号工作台、用户管理和多账号对比
+- 交易账号只能查看和维护自己的数据
 - 交易记录新增、编辑、删除、筛选、排序
-- 只读观察账号查看多用户与对比数据
+- 中英文和明暗主题切换
 - 总览面板、权益曲线、月度盈亏、盈亏分布、币种排行、多空对比
 - Excel 导出
-- SQLite 数据持久化和手动备份接口
+- SQLite 数据持久化、版本迁移和手动备份接口

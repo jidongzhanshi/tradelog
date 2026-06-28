@@ -1,21 +1,22 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { locale, t } from '../i18n';
 
 const zones = [
-  ['北京时间', 'Asia/Shanghai', ''],
-  ['纽约时间', 'America/New_York', '🇺🇸'],
-  ['伦敦时间', 'Europe/London', '🇬🇧'],
-  ['东京时间', 'Asia/Tokyo', '🇯🇵'],
-];
+  ['timezone.beijing', 'Asia/Shanghai', 'CN'],
+  ['timezone.newYork', 'America/New_York', 'US'],
+  ['timezone.london', 'Europe/London', 'UK'],
+  ['timezone.tokyo', 'Asia/Tokyo', 'JP'],
+] as const;
 
 const values = ref<{ label: string; flag: string; value: string }[]>([]);
 let timer = 0;
 
 function update() {
-  values.value = zones.map(([label, timeZone, flag]) => ({
-    label,
+  values.value = zones.map(([labelKey, timeZone, flag]) => ({
+    label: t(labelKey),
     flag,
-    value: new Intl.DateTimeFormat('zh-CN', {
+    value: new Intl.DateTimeFormat(locale.value === 'zh' ? 'zh-CN' : 'en-GB', {
       timeZone,
       month: '2-digit',
       day: '2-digit',
@@ -32,6 +33,7 @@ onMounted(() => {
   timer = window.setInterval(update, 1000);
 });
 onUnmounted(() => window.clearInterval(timer));
+watch(locale, update);
 </script>
 
 <template>

@@ -1,30 +1,50 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { getCharts, getComparison } from '../api/stats';
+import { listUsers } from '../api/users';
 import EChart from '../components/EChart.vue';
 import UserScopeBar from '../components/UserScopeBar.vue';
+import { directionLabel, rangeOptions, t, statusLabel } from '../i18n';
 import { useAuthStore } from '../stores/auth';
 import { money, percent } from '../utils/format';
+import type { User } from '../types';
 
+const route = useRoute();
 const auth = useAuthStore();
 const range = ref('all');
 const scopeUserId = ref<number>();
 const charts = ref<any>({});
 const comparison = ref<any>();
+const users = ref<User[]>([]);
+const selectedAccountName = computed(() => users.value.find((user) => user.id === scopeUserId.value)?.display_name);
+
+function readRouteScope() {
+  const raw = Number(route.query.user_id);
+  scopeUserId.value = Number.isFinite(raw) && raw > 0 ? raw : undefined;
+}
 
 async function load() {
   const params = { range: range.value === 'all' ? undefined : range.value, user_id: scopeUserId.value };
   charts.value = await getCharts(params);
-  if ((auth.isViewer || auth.isAdmin) && !scopeUserId.value) comparison.value = await getComparison(params);
+  comparison.value = auth.isAdmin && !scopeUserId.value ? await getComparison(params) : undefined;
 }
+
+const pageTitle = computed(() => {
+  if (auth.isAdmin && scopeUserId.value) {
+    return t('analytics.accountTitle', { name: selectedAccountName.value || t('role.trader') });
+  }
+  if (auth.isAdmin && !scopeUserId.value) return t('analytics.adminTitle');
+  return t('analytics.title');
+});
 
 const scatterOption = computed(() => ({
   tooltip: {
-    formatter: (p: any) => `${p.data[3]}<br/>持仓 ${p.data[0].toFixed(1)}h<br/>收益率 ${percent(p.data[1])}<br/>盈亏 ${money(p.data[2])}`,
+    formatter: (p: any) => `${p.data[3]}<br/>${t('analytics.holdingHours')} ${p.data[0].toFixed(1)}<br/>${t('trades.roi')} ${percent(p.data[1])}<br/>${t('trades.pnl')} ${money(p.data[2])}`,
   },
   grid: { left: 52, right: 24, top: 24, bottom: 42 },
-  xAxis: { type: 'value', name: '持仓小时' },
-  yAxis: { type: 'value', name: '收益率%' },
+  xAxis: { type: 'value', name: t('analytics.holdingHours') },
+  yAxis: { type: 'value', name: t('analytics.roi') },
   series: [{
     type: 'scatter',
     symbolSize: (d: number[]) => Math.max(8, Math.min(28, Math.abs(d[2]) / 20)),
@@ -44,7 +64,7 @@ const equityOption = computed(() => ({
   xAxis: { type: 'category', data: (charts.value.equity_curve || []).map((p: any) => p.time?.slice(0, 10) || p.time) },
   yAxis: { type: 'value' },
   series: [{
-    name: '账户净值',
+    name: t('chart.accountEquity'),
     type: 'line',
     smooth: true,
     showSymbol: false,
@@ -60,7 +80,7 @@ const monthOption = computed(() => ({
   xAxis: { type: 'category', data: (charts.value.monthly_pnl || []).map((p: any) => p.month) },
   yAxis: { type: 'value' },
   series: [{
-    name: '月度盈亏',
+    name: t('chart.monthlyPnl'),
     type: 'bar',
     barMaxWidth: 38,
     data: (charts.value.monthly_pnl || []).map((p: any) => ({ value: p.pnl, itemStyle: { color: p.pnl >= 0 ? '#20c997' : '#ff5d73' } })),
@@ -85,12 +105,12 @@ const directionOption = computed(() => ({
     type: 'bar',
     barMaxWidth: 42,
     data: (charts.value.direction_comparison || []).map((i: any) => ({
-      name: i.direction === 'long' ? '做多' : '做空',
+      name: directionLabel(i.direction),
       value: i.pnl,
       itemStyle: { color: i.pnl >= 0 ? '#20c997' : '#ff5d73' },
     })),
   }],
-  xAxis: { type: 'category', data: (charts.value.direction_comparison || []).map((i: any) => i.direction === 'long' ? '做多' : '做空') },
+  xAxis: { type: 'category', data: (charts.value.direction_comparison || []).map((i: any) => directionLabel(i.direction)) },
   yAxis: { type: 'value' },
   grid: { left: 52, right: 24, top: 24, bottom: 42 },
 }));
@@ -106,9 +126,9 @@ const winLossOption = computed(() => {
       type: 'pie',
       radius: ['56%', '78%'],
       data: [
-        { name: '盈利', value: wins },
-        { name: '亏损', value: losses },
-        { name: '持平', value: flats },
+        { name: statusLabel('profit'), value: wins },
+        { name: statusLabel('loss'), value: losses },
+        { name: statusLabel('flat'), value: flats },
       ],
       color: ['#20c997', '#ff5d73', '#94a3b8'],
     }],
@@ -116,38 +136,32 @@ const winLossOption = computed(() => {
 });
 
 const directionSummary = computed(() => (charts.value.direction_comparison || []).map((i: any) => ({
-  label: i.direction === 'long' ? '做多' : '做空',
+  label: directionLabel(i.direction),
   pnl: i.pnl,
   count: i.count,
   winRate: i.win_rate,
 })));
 
-/*
-const oldDirectionOption = computed(() => ({
-  tooltip: { trigger: 'item' },
-  series: [{
-    radius: ['48%', '72%'],
-    data: (charts.value.direction_comparison || []).map((i: any) => ({ name: i.direction === 'long' ? '做多' : '做空', value: i.pnl })),
-    color: ['#20c997', '#ff5d73'],
-  }],
-}));
-*/
-
-onMounted(load);
+onMounted(async () => {
+  readRouteScope();
+  if (auth.isAdmin) users.value = await listUsers();
+  await load();
+});
 watch([range, scopeUserId], load);
+watch(() => route.query.user_id, async () => {
+  readRouteScope();
+  await load();
+});
 </script>
 
 <template>
   <div class="page-stack">
     <header class="page-header">
       <div>
-        <span class="eyebrow">Analytics</span>
-        <h1>{{ auth.isViewer && !scopeUserId ? '多用户对比分析' : '交易图表分析' }}</h1>
+        <span class="eyebrow">{{ t('analytics.eyebrow') }}</span>
+        <h1>{{ pageTitle }}</h1>
       </div>
-      <el-segmented v-model="range" :options="[
-        { label: '今日', value: 'today' }, { label: '本周', value: 'week' }, { label: '本月', value: 'month' },
-        { label: '本年', value: 'year' }, { label: '全部', value: 'all' },
-      ]" />
+      <el-segmented v-model="range" :options="rangeOptions" />
     </header>
     <UserScopeBar v-model="scopeUserId" />
 
@@ -155,7 +169,7 @@ watch([range, scopeUserId], load);
       <div v-for="item in comparison.users" :key="item.user_id" class="user-score-card">
         <span>{{ item.display_name }}</span>
         <strong :class="item.total_pnl >= 0 ? 'positive' : 'negative'">{{ money(item.total_pnl) }}</strong>
-        <em>收益率 {{ percent(item.total_return) }} · 胜率 {{ percent(item.win_rate) }}</em>
+        <em>{{ t('metric.return') }} {{ percent(item.total_return) }} · {{ t('metric.winRate') }} {{ percent(item.win_rate) }}</em>
       </div>
     </section>
 
@@ -163,17 +177,17 @@ watch([range, scopeUserId], load);
       <div v-for="item in directionSummary" :key="item.label" class="review-chip">
         <span>{{ item.label }}</span>
         <strong :class="item.pnl >= 0 ? 'positive' : 'negative'">{{ money(item.pnl) }}</strong>
-        <em>{{ item.count }} 笔 · 胜率 {{ percent(item.winRate) }}</em>
+        <em>{{ item.count }} {{ t('metric.trades') }} · {{ t('metric.winRate') }} {{ percent(item.winRate) }}</em>
       </div>
     </section>
 
     <section class="chart-grid review">
-      <el-card class="panel-card wide" header="权益曲线：看账户是否稳定向上"><EChart :option="equityOption" /></el-card>
-      <el-card class="panel-card" header="胜负结构"><EChart :option="winLossOption" /></el-card>
-      <el-card class="panel-card" header="月度盈亏：看周期表现"><EChart :option="monthOption" /></el-card>
-      <el-card class="panel-card" header="币种贡献：看主要利润来源"><EChart :option="rankingOption" /></el-card>
-      <el-card class="panel-card" header="多空盈亏：看方向偏差"><EChart :option="directionOption" /></el-card>
-      <el-card class="panel-card wide" header="持仓时长 vs 收益率：看交易节奏"><EChart :option="scatterOption" /></el-card>
+      <el-card class="panel-card wide" :header="t('analytics.equity')"><EChart :option="equityOption" /></el-card>
+      <el-card class="panel-card" :header="t('analytics.winLoss')"><EChart :option="winLossOption" /></el-card>
+      <el-card class="panel-card" :header="t('analytics.month')"><EChart :option="monthOption" /></el-card>
+      <el-card class="panel-card" :header="t('analytics.symbol')"><EChart :option="rankingOption" /></el-card>
+      <el-card class="panel-card" :header="t('analytics.direction')"><EChart :option="directionOption" /></el-card>
+      <el-card class="panel-card wide" :header="t('analytics.scatter')"><EChart :option="scatterOption" /></el-card>
     </section>
   </div>
 </template>

@@ -5,7 +5,7 @@ from app.core.database import get_db
 from app.core.deps import require_read_all, require_super_admin
 from app.core.security import hash_password
 from app.models.settings import UserSetting
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.schemas.user import ResetPasswordRequest, UserCreate, UserRead, UserUpdate
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -40,12 +40,17 @@ def create_user(payload: UserCreate, _: User = Depends(require_super_admin), db:
 def update_user(
     user_id: int,
     payload: UserUpdate,
-    _: User = Depends(require_super_admin),
+    current_user: User = Depends(require_super_admin),
     db: Session = Depends(get_db),
 ):
     user = db.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="用户不存在")
+    if user_id == current_user.id:
+        if payload.role is not None and payload.role != UserRole.SUPER_ADMIN:
+            raise HTTPException(status_code=400, detail="不能降低当前登录管理员的权限")
+        if payload.is_active is False:
+            raise HTTPException(status_code=400, detail="不能禁用当前登录的管理员")
     for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(user, key, value)
     db.commit()

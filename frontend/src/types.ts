@@ -1,4 +1,4 @@
-export type Role = 'super_admin' | 'trader' | 'viewer';
+export type Role = 'super_admin' | 'trader';
 export type Direction = 'long' | 'short';
 export type TradeStatus = 'profit' | 'loss' | 'flat';
 
@@ -57,4 +57,9 @@ export interface OverviewStats {
   expectancy: number;
   max_consecutive_wins: number;
   max_consecutive_losses: number;
+}
+
+export interface AccountOverview extends OverviewStats {
+  user_id: number;
+  display_name: string;
 }
