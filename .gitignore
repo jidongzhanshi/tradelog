@@ -6,10 +6,17 @@ dist
 data/*.db
 data/*.db-shm
 data/*.db-wal
+data/backups/
 data/backups/*.db
+tradelog-data-*.tar.gz
 backend/local_data
 __pycache__/
+**/__pycache__/
 *.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 backend/.venv
 frontend/node_modules
 frontend/dist
