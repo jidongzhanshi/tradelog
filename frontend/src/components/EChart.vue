@@ -2,7 +2,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { use, init, type ECharts } from 'echarts/core';
 import { BarChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
-import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import { GridComponent, LegendComponent, MarkLineComponent, TooltipComponent } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 
 use([
@@ -11,6 +11,7 @@ use([
   PieChart,
   ScatterChart,
   GridComponent,
+  MarkLineComponent,
   LegendComponent,
   TooltipComponent,
   CanvasRenderer,

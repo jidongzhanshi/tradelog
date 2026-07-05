@@ -92,7 +92,9 @@ onMounted(load);
 
     <el-dialog v-model="dialog" :title="editing ? t('users.editTitle') : t('users.createTitle')" width="520px">
       <el-form label-position="top">
-        <el-form-item :label="t('common.username')"><el-input v-model="form.username" :disabled="Boolean(editing)" /></el-form-item>
+        <el-form-item :label="t('common.username')">
+          <el-input v-model="form.username" :disabled="Boolean(editing)" :placeholder="t('users.usernamePlaceholder')" />
+        </el-form-item>
         <el-form-item :label="t('common.displayName')"><el-input v-model="form.display_name" /></el-form-item>
         <el-form-item v-if="!editing" :label="t('common.initialPassword')"><el-input v-model="form.password" /></el-form-item>
         <el-form-item :label="t('common.role')">

@@ -8,7 +8,7 @@ import UserScopeBar from '../components/UserScopeBar.vue';
 import EChart from '../components/EChart.vue';
 import { rangeOptions, t } from '../i18n';
 import { useAuthStore } from '../stores/auth';
-import { money, percent } from '../utils/format';
+import { money, percent, rMultiple } from '../utils/format';
 import type { OverviewStats } from '../types';
 
 const route = useRoute();
@@ -44,18 +44,26 @@ const pageTitle = computed(() => {
 
 const equityOption = computed(() => ({
   tooltip: { trigger: 'axis' },
+  legend: { data: [t('chart.actualEquity'), t('chart.simulatedEquity')] },
   grid: { left: 48, right: 24, top: 24, bottom: 36 },
   xAxis: { type: 'category', data: (charts.value.equity_curve || []).map((p: any) => p.time?.slice(0, 10) || p.time) },
   yAxis: { type: 'value' },
-  series: [{ name: t('chart.accountEquity'), type: 'line', smooth: true, areaStyle: {}, data: (charts.value.equity_curve || []).map((p: any) => p.equity), color: '#20c997' }],
+  series: [
+    { name: t('chart.actualEquity'), type: 'line', smooth: true, showSymbol: false, data: (charts.value.equity_curve || []).map((p: any) => p.equity), color: '#20c997' },
+    { name: t('chart.simulatedEquity'), type: 'line', smooth: true, showSymbol: false, lineStyle: { type: 'dashed' }, data: (charts.value.equity_curve || []).map((p: any) => p.simulated_equity), color: '#6f8cff' },
+  ],
 }));
 
 const monthOption = computed(() => ({
   tooltip: { trigger: 'axis' },
+  legend: { data: [t('chart.actualPnl'), t('chart.simulatedPnl')] },
   grid: { left: 48, right: 24, top: 24, bottom: 36 },
   xAxis: { type: 'category', data: (charts.value.monthly_pnl || []).map((p: any) => p.month) },
   yAxis: { type: 'value' },
-  series: [{ name: t('chart.monthlyPnl'), type: 'bar', data: (charts.value.monthly_pnl || []).map((p: any) => ({ value: p.pnl, itemStyle: { color: p.pnl >= 0 ? '#20c997' : '#ff5d73' } })) }],
+  series: [
+    { name: t('chart.actualPnl'), type: 'bar', data: (charts.value.monthly_pnl || []).map((p: any) => ({ value: p.pnl, itemStyle: { color: p.pnl >= 0 ? '#20c997' : '#ff5d73' } })) },
+    { name: t('chart.simulatedPnl'), type: 'bar', data: (charts.value.monthly_pnl || []).map((p: any) => p.simulated_pnl), color: '#6f8cff' },
+  ],
 }));
 
 onMounted(async () => {
@@ -85,19 +93,26 @@ watch(() => route.query.user_id, async () => {
     <section v-if="overview" class="metric-grid">
       <MetricCard :label="t('metric.initialCapital')" :value="money(overview.initial_capital)" tone="blue" />
       <MetricCard :label="t('metric.equity')" :value="money(overview.account_equity)" />
+      <MetricCard :label="t('metric.simulatedEquity')" :value="money(overview.simulated_equity)" tone="blue" />
       <MetricCard :label="t('metric.pnl')" :value="money(overview.total_pnl)" :tone="overview.total_pnl >= 0 ? 'green' : 'red'" />
       <MetricCard :label="t('metric.return')" :value="percent(overview.total_return)" :tone="overview.total_return >= 0 ? 'green' : 'red'" />
+      <MetricCard :label="t('metric.simulatedReturn')" :value="percent(overview.simulated_return)" :tone="overview.simulated_return >= 0 ? 'green' : 'red'" />
       <MetricCard :label="t('metric.winRate')" :value="percent(overview.win_rate)" />
       <MetricCard :label="t('metric.drawdown')" :value="percent(overview.max_drawdown)" tone="red" />
       <MetricCard :label="t('metric.trades')" :value="overview.total_trades" />
-      <MetricCard :label="t('metric.expectancy')" :value="money(overview.expectancy)" />
+      <MetricCard :label="t('metric.totalR')" :value="rMultiple(overview.total_r)" :tone="overview.total_r >= 0 ? 'green' : 'red'" />
+      <MetricCard :label="t('metric.averageR')" :value="rMultiple(overview.average_r)" :tone="overview.average_r >= 0 ? 'green' : 'red'" />
+      <MetricCard :label="t('metric.averageRisk')" :value="percent(overview.average_risk_percent)" :tone="overview.average_risk_percent <= 2 ? 'green' : 'red'" />
+      <MetricCard :label="t('metric.planAdherence')" :value="percent(overview.plan_adherence_rate)" />
+      <MetricCard :label="t('metric.deviationCount')" :value="overview.deviation_count" :tone="overview.deviation_count ? 'red' : 'green'" />
+      <MetricCard :label="t('metric.overRisk')" :value="overview.over_risk_count" :tone="overview.over_risk_count ? 'red' : 'green'" />
     </section>
 
     <section v-if="comparison && !scopeUserId" class="compare-grid">
       <div v-for="item in comparison.users" :key="item.user_id" class="compare-card">
         <strong>{{ item.display_name }}</strong>
         <span :class="item.total_pnl >= 0 ? 'positive' : 'negative'">{{ money(item.total_pnl) }}</span>
-        <em>{{ t('metric.winRate') }} {{ percent(item.win_rate) }} · {{ item.total_trades }} {{ t('metric.trades') }}</em>
+        <em>{{ t('metric.averageR') }} {{ rMultiple(item.average_r) }} · {{ t('metric.planAdherence') }} {{ percent(item.plan_adherence_rate) }}</em>
       </div>
     </section>
 

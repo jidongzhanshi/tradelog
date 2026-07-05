@@ -8,6 +8,7 @@ from app.core.database import Base, SessionLocal, engine
 from app.core.migrations import run_migrations
 from app.core.security import hash_password
 from app.models import User, UserRole, UserSetting
+from app.services.trade_metrics_service import recalculate_all_trade_metrics
 
 app = FastAPI(title=settings.app_name)
 
@@ -36,6 +37,7 @@ def startup() -> None:
     Base.metadata.create_all(bind=engine)
     run_migrations()
     seed_default_admin()
+    recalculate_existing_trade_metrics()
 
 
 @app.get("/health")
@@ -60,6 +62,15 @@ def seed_default_admin() -> None:
         db.add(admin)
         db.flush()
         db.add(UserSetting(user_id=admin.id, initial_capital=0, currency="USDT"))
+        db.commit()
+    finally:
+        db.close()
+
+
+def recalculate_existing_trade_metrics() -> None:
+    db = SessionLocal()
+    try:
+        recalculate_all_trade_metrics(db)
         db.commit()
     finally:
         db.close()

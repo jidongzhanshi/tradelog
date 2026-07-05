@@ -54,7 +54,13 @@ def charts(
         initial_capital = sum(stats_service.user_initial_capital(db, user.id) for user in trader_users)
     return {
         "equity_curve": stats_service.build_equity_curve(trades, initial_capital),
+        "r_curve": stats_service.build_r_curve(trades),
         "monthly_pnl": stats_service.monthly_pnl(trades),
+        "r_distribution": stats_service.r_distribution(trades),
+        "rolling_average_r": stats_service.rolling_average_r(trades),
+        "risk_percent_trend": stats_service.risk_percent_trend(trades),
+        "plan_execution_comparison": stats_service.plan_execution_comparison(trades),
+        "deviation_reason_distribution": stats_service.deviation_reason_distribution(trades),
         "symbol_ranking": stats_service.symbol_ranking(trades),
         "direction_comparison": stats_service.direction_comparison(trades),
         "scatter": stats_service.scatter_data(trades),

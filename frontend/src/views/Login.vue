@@ -135,7 +135,7 @@ onUnmounted(() => motion?.revert());
       <h2>{{ t('login.title') }}</h2>
       <el-form label-position="top" @submit.prevent="submit">
         <el-form-item :label="t('common.username')">
-          <el-input v-model="form.username" size="large" />
+          <el-input v-model="form.username" size="large" :placeholder="t('login.usernamePlaceholder')" />
         </el-form-item>
         <el-form-item :label="t('common.password')">
           <el-input v-model="form.password" size="large" type="password" show-password @keyup.enter="submit" />

@@ -9,6 +9,7 @@ from app.models.trade import Trade, TradeStatus
 from app.models.user import User, UserRole
 from app.schemas.trade import TradeCreate, TradeRead, TradeUpdate
 from app.services.stats_service import filter_trades_by_range
+from app.services.trade_metrics_service import recalculate_user_trade_metrics
 
 router = APIRouter(prefix="/trades", tags=["trades"])
 
@@ -55,6 +56,8 @@ def create_trade(
         raise HTTPException(status_code=403, detail="无权为该用户新增交易")
     trade = Trade(**prepare_trade_payload(payload), user_id=owner_id)
     db.add(trade)
+    db.flush()
+    recalculate_user_trade_metrics(db, owner_id)
     db.commit()
     db.refresh(trade)
     return trade
@@ -85,6 +88,8 @@ def update_trade(
     for key, value in prepare_trade_payload(payload).items():
         setattr(trade, key, value)
     trade.updated_at = datetime.utcnow()
+    db.flush()
+    recalculate_user_trade_metrics(db, trade.user_id)
     db.commit()
     db.refresh(trade)
     return trade
@@ -97,22 +102,24 @@ def delete_trade(trade_id: int, current_user: User = Depends(get_current_user), 
         raise HTTPException(status_code=404, detail="交易不存在")
     if not can_manage_trade_owner(current_user, trade.user_id):
         raise HTTPException(status_code=403, detail="无权删除该交易")
+    owner_id = trade.user_id
     db.delete(trade)
+    db.flush()
+    recalculate_user_trade_metrics(db, owner_id)
     db.commit()
     return {"message": "交易已删除"}
 
 
 def prepare_trade_payload(payload: TradeCreate | TradeUpdate) -> dict:
-    data = payload.model_dump(exclude={"user_id"})
+    data = payload.model_dump(exclude={"user_id", "status"})
     data["symbol"] = data["symbol"].upper()
     data["base_asset"] = data["base_asset"].upper()
     data["quote_asset"] = "USDT"
     data["open_time"] = normalize_datetime(data["open_time"])
     data["close_time"] = normalize_datetime(data["close_time"])
     data["holding_seconds"] = max(0, int((data["close_time"] - data["open_time"]).total_seconds()))
-    if not data.get("status"):
-        pnl = data.get("realized_pnl", 0)
-        data["status"] = TradeStatus.PROFIT if pnl > 0 else TradeStatus.LOSS if pnl < 0 else TradeStatus.FLAT
+    pnl = data.get("realized_pnl", 0)
+    data["status"] = TradeStatus.PROFIT if pnl > 0 else TradeStatus.LOSS if pnl < 0 else TradeStatus.FLAT
     return data
 
 

@@ -632,6 +632,60 @@ body {
   gap: 2px 14px;
 }
 
+.trade-form-sections {
+  display: grid;
+  gap: 18px;
+}
+
+.form-section {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.form-section:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.form-section h3 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+.plan-field-disabled {
+  opacity: 0.55;
+  transition: opacity 160ms ease;
+}
+
+.form-grid.compact {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.trade-dialog .el-select,
+.trade-dialog .el-date-editor,
+.trade-dialog .el-input-number {
+  width: 100%;
+}
+
+.trade-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  margin-top: 24px !important;
+}
+
+.trade-dialog .el-dialog__body {
+  overflow-y: auto;
+}
+
+.trade-dialog .el-dialog__header,
+.trade-dialog .el-dialog__footer {
+  flex: 0 0 auto;
+}
+
 .form-note {
   margin: -4px 0 16px;
   color: var(--muted);
@@ -982,6 +1036,10 @@ body {
 }
 
 @media (max-width: 760px) {
+  .trade-dialog {
+    width: calc(100vw - 24px) !important;
+  }
+
   .app-frame {
     grid-template-columns: 1fr;
   }
@@ -1094,6 +1152,10 @@ body {
   }
 
   .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-grid.compact {
     grid-template-columns: 1fr;
   }
 

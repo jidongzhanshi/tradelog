@@ -16,7 +16,9 @@ def trades_to_workbook(sheets: dict[str, list[Trade]], summaries: dict[str, dict
 
     if summaries:
         ws = wb.create_sheet("汇总统计")
-        headers = ["名称", "本金", "账户净值", "累计盈亏", "收益率", "胜率", "交易次数", "总盈利", "总亏损", "最大回撤"]
+        headers = ["名称", "本金", "账户净值", "累计盈亏", "收益率", "胜率", "交易次数", "总盈利", "总亏损", "最大回撤", "累计R", "期望R"]
+        headers[-1] = "平均 R"
+        headers.extend(["平均风险比例", "超出2%笔数", "计划执行率", "未按计划笔数", "2%模拟净值", "2%模拟收益率"])
         ws.append(headers)
         style_header(ws)
         for name, item in summaries.items():
@@ -31,6 +33,14 @@ def trades_to_workbook(sheets: dict[str, list[Trade]], summaries: dict[str, dict
                 item["total_profit"],
                 item["total_loss"],
                 item["max_drawdown"],
+                item["total_r"],
+                item["average_r"],
+                item["average_risk_percent"],
+                item["over_risk_count"],
+                item["plan_adherence_rate"],
+                item["deviation_count"],
+                item["simulated_equity"],
+                item["simulated_return"],
             ])
         autosize(ws)
 
@@ -42,10 +52,16 @@ def trades_to_workbook(sheets: dict[str, list[Trade]], summaries: dict[str, dict
 
 def write_trade_sheet(ws, trades: list[Trade]) -> None:
     headers = [
-        "平仓时间", "交易对", "方向", "合约类型", "保证金模式", "杠杆", "已实现盈亏",
-        "收益率", "平仓数量", "最大OI", "平均开仓价", "平均平仓价", "开仓时间",
-        "持仓秒数", "手续费", "状态", "备注",
+        "平仓时间", "交易对", "方向", "开仓价", "平仓价", "止损价", "止盈价",
+        "净盈亏", "风险比例", "计划风险金额", "R倍数", "计划盈亏比",
+        "账户收益贡献", "交易前净值", "开仓时间", "持仓秒数", "策略标签",
+        "离场原因", "状态", "备注",
     ]
+    headers[9] = "计划止损金额"
+    headers.extend([
+        "计划止盈金额", "是否按计划执行", "偏离原因分类", "偏离原因说明",
+        "2%模拟风险金额", "2%模拟止盈金额", "2%模拟实际盈亏",
+    ])
     ws.append(headers)
     style_header(ws)
     for trade in trades:
@@ -53,20 +69,30 @@ def write_trade_sheet(ws, trades: list[Trade]) -> None:
             trade.close_time,
             trade.symbol,
             trade.direction.value,
-            trade.contract_type.value,
-            trade.margin_mode.value,
-            trade.leverage,
-            trade.realized_pnl,
-            trade.roi_percent,
-            trade.position_size,
-            trade.max_position_size,
             trade.avg_open_price,
             trade.avg_close_price,
+            trade.stop_loss_price,
+            trade.take_profit_price,
+            trade.realized_pnl,
+            trade.risk_percent,
+            trade.planned_risk_amount,
+            trade.r_multiple,
+            trade.planned_rr,
+            trade.account_return_percent,
+            trade.account_equity_before,
             trade.open_time,
             trade.holding_seconds,
-            trade.fee,
+            trade.strategy_tag or "",
+            trade.exit_reason or "",
             trade.status.value,
             trade.note or "",
+            trade.planned_profit_amount,
+            "是" if trade.followed_plan else "否",
+            trade.deviation_reason or "",
+            trade.deviation_note or "",
+            trade.simulated_risk_amount,
+            trade.simulated_profit_target,
+            trade.simulated_pnl,
         ])
     autosize(ws)
 

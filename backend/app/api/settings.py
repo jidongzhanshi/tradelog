@@ -6,6 +6,7 @@ from app.core.deps import get_current_user
 from app.models.settings import UserSetting
 from app.models.user import User, UserRole
 from app.schemas.settings import SettingRead, SettingUpdate
+from app.services.trade_metrics_service import recalculate_user_trade_metrics
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -31,6 +32,8 @@ def update_settings(
     setting = ensure_setting(db, target_id)
     setting.initial_capital = payload.initial_capital
     setting.currency = "USDT"
+    db.flush()
+    recalculate_user_trade_metrics(db, target_id)
     db.commit()
     db.refresh(setting)
     return setting

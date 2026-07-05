@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, Enum as SqlEnum, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Enum as SqlEnum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -47,11 +47,29 @@ class Trade(Base):
     max_position_size: Mapped[float] = mapped_column(Float, default=0)
     avg_open_price: Mapped[float] = mapped_column(Float, default=0)
     avg_close_price: Mapped[float] = mapped_column(Float, default=0)
+    stop_loss_price: Mapped[float] = mapped_column(Float, default=0)
+    take_profit_price: Mapped[float] = mapped_column(Float, default=0)
+    risk_percent: Mapped[float] = mapped_column(Float, default=2)
+    account_equity_before: Mapped[float] = mapped_column(Float, default=0)
+    planned_risk_amount: Mapped[float] = mapped_column(Float, default=0)
+    planned_profit_amount: Mapped[float] = mapped_column(Float, default=0)
+    r_multiple: Mapped[float] = mapped_column(Float, default=0)
+    planned_rr: Mapped[float] = mapped_column(Float, default=0)
+    account_return_percent: Mapped[float] = mapped_column(Float, default=0)
+    simulated_equity_before: Mapped[float] = mapped_column(Float, default=0)
+    simulated_risk_amount: Mapped[float] = mapped_column(Float, default=0)
+    simulated_profit_target: Mapped[float] = mapped_column(Float, default=0)
+    simulated_pnl: Mapped[float] = mapped_column(Float, default=0)
     open_time: Mapped[datetime] = mapped_column(DateTime, index=True)
     close_time: Mapped[datetime] = mapped_column(DateTime, index=True)
     holding_seconds: Mapped[int] = mapped_column(Integer, default=0)
     fee: Mapped[float] = mapped_column(Float, default=0)
     status: Mapped[TradeStatus] = mapped_column(SqlEnum(TradeStatus), default=TradeStatus.FLAT)
+    strategy_tag: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    exit_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    followed_plan: Mapped[bool] = mapped_column(Boolean, default=True)
+    deviation_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    deviation_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     note: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

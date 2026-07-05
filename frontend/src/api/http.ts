@@ -31,10 +31,14 @@ http.interceptors.request.use((config) => {
 http.interceptors.response.use(
   (response) => response,
   (error) => {
+    const status = error.response?.status;
+    const requestUrl = String(error.config?.url || '');
+    const isLoginRequest = requestUrl.includes('/auth/login');
     const message = error.response
       ? readErrorMessage(error.response.data)
       : t('error.network', { message: error.message });
-    if (error.response?.status !== 401) {
+
+    if (status !== 401 || isLoginRequest) {
       ElMessage({
         message,
         type: 'error',
@@ -42,9 +46,12 @@ http.interceptors.response.use(
         showClose: true,
       });
     }
-    if (error.response?.status === 401) {
+
+    if (status === 401 && !isLoginRequest) {
       localStorage.removeItem('tradelog_token');
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.assign('/login');
+      }
     }
     return Promise.reject(error);
   },
