@@ -307,14 +307,9 @@ watch(() => route.query.user_id, async () => {
     <section class="chart-grid review">
       <el-card class="panel-card wide" :header="t('analytics.equity')"><EChart :option="equityOption" /></el-card>
       <el-card class="panel-card" :header="t('analytics.rCurve')"><EChart :option="rCurveOption" /></el-card>
-      <el-card class="panel-card" :header="t('analytics.rDistribution')"><EChart :option="rDistributionOption" /></el-card>
       <el-card class="panel-card" :header="t('analytics.month')"><EChart :option="monthOption" /></el-card>
-      <el-card class="panel-card" :header="t('analytics.riskTrend')"><EChart :option="riskTrendOption" /></el-card>
       <el-card class="panel-card" :header="t('analytics.planComparison')"><EChart :option="planComparisonOption" /></el-card>
-      <el-card class="panel-card" :header="t('analytics.deviationReasons')"><EChart :option="deviationReasonsOption" /></el-card>
-      <el-card class="panel-card" :header="t('analytics.symbolR')"><EChart :option="rankingOption" /></el-card>
-      <el-card class="panel-card" :header="t('analytics.directionR')"><EChart :option="directionOption" /></el-card>
-      <el-card class="panel-card wide" :header="t('analytics.rollingR')"><EChart :option="rollingROption" /></el-card>
+      <el-card class="panel-card" :header="t('analytics.riskTrend')"><EChart :option="riskTrendOption" /></el-card>
       <el-card class="panel-card wide" :header="t('analytics.scatter')"><EChart :option="scatterOption" /></el-card>
     </section>
   </div>

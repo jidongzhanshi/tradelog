@@ -12,10 +12,10 @@ const pageRoot = ref<HTMLElement>();
 const loading = ref(false);
 const form = reactive({ username: 'admin', password: 'admin123' });
 const coins = [
-  { symbol: 'BTC', glyph: '₿', tone: 'gold' },
-  { symbol: 'ETH', glyph: 'Ξ', tone: 'violet' },
+  { symbol: 'BTC', glyph: 'B', tone: 'gold' },
+  { symbol: 'ETH', glyph: 'E', tone: 'violet' },
   { symbol: 'SOL', glyph: 'S', tone: 'mint' },
-  { symbol: 'BNB', glyph: '◆', tone: 'amber' },
+  { symbol: 'BNB', glyph: 'N', tone: 'amber' },
   { symbol: 'XRP', glyph: 'X', tone: 'steel' },
 ];
 const candles = Array.from({ length: 34 }, (_, index) => ({
@@ -49,36 +49,36 @@ onMounted(() => {
     (context) => {
       if (!context.conditions?.animate || !pageRoot.value) return;
       const q = gsap.utils.selector(pageRoot.value);
-      const candles = gsap.utils.toArray<HTMLElement>('.candle', pageRoot.value);
+      const candleEls = gsap.utils.toArray<HTMLElement>('.candle', pageRoot.value);
       const timeline = gsap.timeline({
-        defaults: { duration: 0.55, ease: 'power3.out' },
+        defaults: { duration: 0.42, ease: 'power3.out' },
       });
 
       gsap.set(loginCard, {
-        x: context.conditions.compact ? 0 : 28,
-        y: context.conditions.compact ? 18 : 0,
+        x: context.conditions.compact ? 0 : 24,
+        y: context.conditions.compact ? 16 : 0,
       });
       gsap.set(q('.signal-line path'), { strokeDasharray: 720, strokeDashoffset: 720 });
       timeline
         .to(loginCard, {
           x: 0,
           y: 0,
-          duration: 0.48,
+          duration: 0.36,
           clearProps: 'transform',
-        }, 0.08)
-        .from(q('.market-terminal'), { autoAlpha: 0, y: context.conditions.compact ? 14 : 24, scale: 0.985 })
-        .from(q('.terminal-topline > *'), { autoAlpha: 0, y: 8, stagger: 0.08 }, '-=0.25')
-        .from(q('.coin-chip'), { autoAlpha: 0, y: 10, stagger: 0.055 }, '-=0.3')
-        .from(candles, {
+        }, 0.05)
+        .from(q('.market-terminal'), { autoAlpha: 0, y: context.conditions.compact ? 12 : 18, scale: 0.99 })
+        .from(q('.terminal-topline > *'), { autoAlpha: 0, y: 8, stagger: 0.06 }, '-=0.18')
+        .from(q('.coin-chip'), { autoAlpha: 0, y: 10, stagger: 0.045 }, '-=0.2')
+        .from(candleEls, {
           autoAlpha: 0,
           scaleY: 0.08,
           transformOrigin: '50% 100%',
-          duration: 0.42,
-          stagger: { amount: 0.48, from: 'start' },
-        }, '-=0.3')
-        .to(q('.signal-line path'), { strokeDashoffset: 0, duration: 1.1, ease: 'power2.inOut' }, '-=0.45')
-        .from(q('.terminal-stats span'), { autoAlpha: 0, y: 10, stagger: 0.08 }, '-=0.5')
-        .from(q('.login-hero-copy > *'), { autoAlpha: 0, y: 18, stagger: 0.08 }, '-=0.42');
+          duration: 0.32,
+          stagger: { amount: 0.34, from: 'start' },
+        }, '-=0.18')
+        .to(q('.signal-line path'), { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, '-=0.3')
+        .from(q('.terminal-stats span'), { autoAlpha: 0, y: 8, stagger: 0.05 }, '-=0.35')
+        .from(q('.login-hero-copy > *'), { autoAlpha: 0, y: 14, stagger: 0.06 }, '-=0.28');
     },
     pageRoot.value,
   );

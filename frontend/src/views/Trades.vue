@@ -195,7 +195,7 @@ watch(() => form.followed_plan, (followed) => {
         <el-table-column :label="t('trades.followedPlan')" width="105">
           <template #default="{ row }"><el-tag :type="row.followed_plan ? 'success' : 'warning'">{{ row.followed_plan ? t('common.yes') : t('common.no') }}</el-tag></template>
         </el-table-column>
-        <el-table-column v-if="canEdit" :label="t('common.actions')" fixed="right" width="150">
+        <el-table-column v-if="canEdit" :label="t('common.actions')" width="150">
           <template #default="{ row }">
             <el-button text @click="openEdit(row)">{{ t('common.edit') }}</el-button>
             <el-button text type="danger" @click="remove(row)">{{ t('common.delete') }}</el-button>
